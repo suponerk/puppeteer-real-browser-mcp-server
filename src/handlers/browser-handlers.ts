@@ -1,7 +1,7 @@
-import { initializeBrowser, closeBrowser, getBrowserInstance, getPageInstance, getContentPriorityConfig, updateContentPriorityConfig } from '../browser-manager.js';
-import { withErrorHandling } from '../system-utils.js';
-import { validateWorkflow, recordExecution, workflowValidator } from '../workflow-validation.js';
-import { BrowserInitArgs } from '../tool-definitions.js';
+import { initializeBrowser, closeBrowser, getBrowserInstance, getPageInstance, getContentPriorityConfig, updateContentPriorityConfig } from '../utils/browser-manager.js';
+import { withErrorHandling } from '../utils/system-utils.js';
+import { validateWorkflow, recordExecution, workflowValidator } from '../utils/workflow-validation.js';
+import { BrowserInitArgs } from '../utils/tool-definitions.js';
 
 // Browser initialization handler
 export async function handleBrowserInit(args: BrowserInitArgs) {

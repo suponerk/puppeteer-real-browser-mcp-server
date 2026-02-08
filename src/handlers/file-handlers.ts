@@ -1,11 +1,11 @@
 import { promises as fs } from 'fs';
 import { dirname, extname, resolve, relative } from 'path';
 import TurndownService from 'turndown';
-import { getPageInstance } from '../browser-manager.js';
-import { withErrorHandling, withTimeout } from '../system-utils.js';
-import { validateWorkflow, recordExecution, workflowValidator } from '../workflow-validation.js';
-import { tokenManager } from '../token-management.js';
-import { SaveContentAsMarkdownArgs } from '../tool-definitions.js';
+import { getPageInstance } from '../utils/browser-manager.js';
+import { withErrorHandling, withTimeout } from '../utils/system-utils.js';
+import { validateWorkflow, recordExecution, workflowValidator } from '../utils/workflow-validation.js';
+import { tokenManager } from '../utils/token-management.js';
+import { SaveContentAsMarkdownArgs } from '../utils/tool-definitions.js';
 
 // Path validation and security functions
 function validateFilePath(filePath: string): void {

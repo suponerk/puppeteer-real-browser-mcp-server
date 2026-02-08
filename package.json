@@ -3,40 +3,16 @@
   "version": "1.5.16",
   "description": "MCP server for puppeteer-real-browser",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/mcp-rest.js",
   "scripts": {
-    "clean": "rimraf dist",
-    "clean:cache": "npm cache clean --force",
-    "fix-cache-permissions": "echo 'Run: sudo chown -R $(whoami):$(id -gn) ~/.npm' && echo 'This fixes npm cache permission issues'",
-    "clean:modules": "rm -rf node_modules",
-    "clean:all": "npm run clean:modules && npm run clean:cache && npm run clean",
-    "fresh-install": "npm run clean:all && npm install",
-    "fresh-start": "npm run fresh-install && npm run build && npm start",
-    "fresh-dev": "npm run fresh-install && npm run build && npm run dev",
-    "prebuild": "npm run clean",
     "build": "tsc",
-    "rebuild": "npm run clean && npm run build",
-    "start": "node dist/index.js",
-    "dev": "tsx src/index.ts",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:ci": "vitest run --coverage",
-    "test:unit": "vitest run src",
-    "test:integration": "vitest run test/integration",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "test:e2e:watch": "vitest --config vitest.e2e.config.ts",
-    "test:chrome:cleanup": "pkill -f 'Google Chrome' || true",
-    "test:full": "cd tests/mcp-testing && npm test",
-    "test:performance": "node tests/performance/performance-tests.js",
-    "test:debug": "node debug-server.js",
-    "test:all": "npm run test:ci && npm run test:full && npm run test:performance",
-    "test:dashboard": "node test-runner.js"
+    "start": "node dist/mcp-rest.js",
+    "dev": "tsx src/mcp-rest.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": ">=1.0.0",
     "@types/turndown": "^5.0.5",
+    "express": "^5.2.1",
     "puppeteer-real-browser": "^1.3.18",
     "turndown": "^7.2.0"
   },
@@ -44,6 +20,7 @@
     "@modelcontextprotocol/sdk": ">=1.0.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "latest",
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/ui": "^2.1.8",
@@ -57,18 +34,18 @@
     "puppeteer",
     "browser-automation"
   ],
-  "author": "withlinda13",
+  "author": "suponerk",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/withLinda/puppeteer-real-browser-mcp-server.git"
+    "url": "git+https://github.com/suponerk/puppeteer-real-browser-mcp-server.git"
   },
-  "homepage": "https://github.com/withLinda/puppeteer-real-browser-mcp-server",
+  "homepage": "https://github.com/suponerk/puppeteer-real-browser-mcp-server",
   "bugs": {
-    "url": "https://github.com/withLinda/puppeteer-real-browser-mcp-server/issues"
+    "url": "https://github.com/suponerk/puppeteer-real-browser-mcp-server/issues"
   },
   "bin": {
-    "puppeteer-real-browser-mcp-server": "dist/index.js"
+    "puppeteer-real-browser-mcp-server": "dist/mcp-rest.js"
   },
   "files": [
     "dist/**/*",

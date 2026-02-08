@@ -19,13 +19,13 @@ console.error('🔍 [DEBUG] MCP SDK imports completed successfully');
 
 // Import extracted modules
 console.error('🔍 [DEBUG] Loading tool definitions...');
-import { TOOLS, SERVER_INFO, CAPABILITIES, TOOL_NAMES, NavigateArgs, ClickArgs, TypeArgs, WaitArgs, SolveCaptchaArgs, FindSelectorArgs, SaveContentAsMarkdownArgs } from './tool-definitions.js';
+import { TOOLS, SERVER_INFO, CAPABILITIES, TOOL_NAMES, NavigateArgs, ClickArgs, TypeArgs, WaitArgs, SolveCaptchaArgs, FindSelectorArgs, SaveContentAsMarkdownArgs } from './utils/tool-definitions.js';
 console.error('🔍 [DEBUG] Loading system utils...');
-import { withErrorHandling } from './system-utils.js';
+import { withErrorHandling } from './utils/system-utils.js';
 console.error('🔍 [DEBUG] Loading browser manager...');
-import { closeBrowser, forceKillAllChromeProcesses } from './browser-manager.js';
+import { closeBrowser, forceKillAllChromeProcesses } from './utils/browser-manager.js';
 console.error('🔍 [DEBUG] Loading core infrastructure...');
-import { setupProcessCleanup, MCP_SERVER_CONFIG } from './core-infrastructure.js';
+import { setupProcessCleanup, MCP_SERVER_CONFIG } from './utils/core-infrastructure.js';
 
 // Import handlers
 console.error('🔍 [DEBUG] Loading handlers...');

@@ -1,6 +1,4 @@
 
-⚠️ **UNDER MAINTENANCE** - This project is still being actively developed. Some features may be incomplete or change without notice.
-
 # Puppeteer Real Browser MCP Server
 
 Provides AI assistants with powerful, detection-resistant browser automation capabilities built on ZFC Digital's puppeteer-real-browser package.
@@ -19,14 +17,23 @@ Provides AI assistants with powerful, detection-resistant browser automation cap
    - [With Claude Code CLI](#with-claude-code-cli)
    - [With Cursor IDE](#with-cursor-ide)
    - [With Other AI Assistants](#with-other-ai-assistants)
-7. [Available Tools](#available-tools)
-8. [Advanced Features](#advanced-features)
-9. [Configuration](#configuration)
-10. [Troubleshooting](#troubleshooting)
-11. [Development](#development)
-12. [Testing](#testing)
-13. [Contributing](#contributing)
-14. [License](#license)
+7. [HTTP Server Mode](#http-server-mode)
+   - [Starting the HTTP Server](#starting-the-http-server)
+   - [Session Management](#session-management)
+   - [API Endpoints](#api-endpoints)
+   - [Complete Usage Example](#complete-usage-example)
+   - [Python Example](#python-example)
+   - [JavaScript/Node.js Example](#javascriptnodejs-example)
+   - [Error Handling](#error-handling)
+   - [Security Considerations](#security-considerations)
+8. [Available Tools](#available-tools)
+9. [Advanced Features](#advanced-features)
+10. [Configuration](#configuration)
+11. [Troubleshooting](#troubleshooting)
+12. [Development](#development)
+13. [Testing](#testing)
+14. [Contributing](#contributing)
+15. [License](#license)
 
 ## Quick Start for Beginners
 
@@ -493,6 +500,441 @@ AI: I'll extract the page content and save it as a formatted markdown file.
 User: "Initialize a browser with a proxy server"
 AI: I'll set up the browser with your proxy configuration.
 [Uses browser_init with proxy: "https://proxy.example.com:8080"]
+```
+
+## HTTP Server Mode
+
+In addition to the standard stdio-based MCP server, this package includes an HTTP server mode that allows remote connections via HTTP/HTTPS. This is useful for:
+- Integrating with web applications
+- Running the server as a microservice
+- Connecting from non-Node.js environments
+- Remote browser automation
+
+### Starting the HTTP Server
+
+#### Development
+```bash
+# Clone and setup
+git clone https://github.com/withLinda/puppeteer-real-browser-mcp-server.git
+cd puppeteer-real-browser-mcp-server
+npm install
+npm run build
+
+# Start the HTTP server
+node dist/server.js
+```
+
+The server will start on `http://localhost:7777` by default.
+
+#### Custom Port
+```bash
+SERVER_PORT=8080 node dist/server.js
+```
+
+### Session Management
+
+The HTTP server uses session-based communication. Each client must maintain a unique session ID throughout their interaction.
+
+#### Session Lifecycle
+
+1. **Generate a Session ID**: Create a unique UUID for your session
+2. **Initialize Session**: Send an initialize request with the session ID
+3. **Make Requests**: Use the same session ID for all subsequent requests
+4. **Session Cleanup**: Sessions are automatically cleaned up after inactivity
+
+### API Endpoints
+
+#### Health Check
+```bash
+GET /health
+```
+
+Returns server health status.
+
+**Example:**
+```bash
+curl http://localhost:7777/health
+```
+
+**Response:**
+```
+Server is healthy
+```
+
+#### MCP Endpoint
+```bash
+POST /mcp
+```
+
+All MCP requests go through this endpoint with proper headers and session management.
+
+**Required Headers:**
+- `Content-Type: application/json`
+- `Accept: application/json, text/event-stream`
+- `Mcp-Session-Id: <your-session-uuid>` (for all requests after initialization)
+
+### Complete Usage Example
+
+Here's a complete example of using the HTTP server:
+
+```bash
+# 1. Generate a unique session ID
+SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+echo "Session ID: $SESSION_ID"
+
+# 2. Initialize the session
+curl -X POST http://localhost:7777/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "my-client",
+        "version": "1.0.0"
+      }
+    },
+    "id": 1
+  }'
+
+# 3. List available tools
+curl -X POST http://localhost:7777/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "params": {},
+    "id": 2
+  }'
+
+# 4. Initialize browser
+curl -X POST http://localhost:7777/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "browser_init",
+      "arguments": {
+        "headless": false
+      }
+    },
+    "id": 3
+  }'
+
+# 5. Navigate to a URL
+curl -X POST http://localhost:7777/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "navigate",
+      "arguments": {
+        "url": "https://example.com"
+      }
+    },
+    "id": 4
+  }'
+
+# 6. Get page content
+curl -X POST http://localhost:7777/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "get_content",
+      "arguments": {
+        "type": "text"
+      }
+    },
+    "id": 5
+  }'
+```
+
+### Python Example
+
+```python
+import requests
+import uuid
+import json
+
+class MCPClient:
+    def __init__(self, base_url="http://localhost:7777"):
+        self.base_url = base_url
+        self.session_id = str(uuid.uuid4())
+        self.request_id = 0
+        self.headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "Mcp-Session-Id": self.session_id
+        }
+    
+    def _next_id(self):
+        self.request_id += 1
+        return self.request_id
+    
+    def initialize(self):
+        """Initialize the MCP session"""
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "python-client",
+                    "version": "1.0.0"
+                }
+            },
+            "id": self._next_id()
+        }
+        response = requests.post(
+            f"{self.base_url}/mcp",
+            headers=self.headers,
+            json=payload
+        )
+        return response.json()
+    
+    def list_tools(self):
+        """List all available tools"""
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "tools/list",
+            "params": {},
+            "id": self._next_id()
+        }
+        response = requests.post(
+            f"{self.base_url}/mcp",
+            headers=self.headers,
+            json=payload
+        )
+        return response.json()
+    
+    def call_tool(self, tool_name, arguments=None):
+        """Call a specific tool"""
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {
+                "name": tool_name,
+                "arguments": arguments or {}
+            },
+            "id": self._next_id()
+        }
+        response = requests.post(
+            f"{self.base_url}/mcp",
+            headers=self.headers,
+            json=payload
+        )
+        return response.json()
+
+# Usage example
+if __name__ == "__main__":
+    client = MCPClient()
+    
+    # Initialize session
+    print("Initializing session...")
+    result = client.initialize()
+    print(f"Session initialized: {result}")
+    
+    # List available tools
+    print("\nListing tools...")
+    tools = client.list_tools()
+    print(f"Available tools: {tools}")
+    
+    # Initialize browser
+    print("\nInitializing browser...")
+    result = client.call_tool("browser_init", {"headless": False})
+    print(f"Browser initialized: {result}")
+    
+    # Navigate to URL
+    print("\nNavigating to example.com...")
+    result = client.call_tool("navigate", {"url": "https://example.com"})
+    print(f"Navigation result: {result}")
+    
+    # Get content
+    print("\nGetting page content...")
+    result = client.call_tool("get_content", {"type": "text"})
+    print(f"Content: {result}")
+```
+
+### JavaScript/Node.js Example
+
+```javascript
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+
+class MCPClient {
+  constructor(baseUrl = 'http://localhost:7777') {
+    this.baseUrl = baseUrl;
+    this.sessionId = uuidv4();
+    this.requestId = 0;
+    this.headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json, text/event-stream',
+      'Mcp-Session-Id': this.sessionId
+    };
+  }
+
+  nextId() {
+    return ++this.requestId;
+  }
+
+  async initialize() {
+    const payload = {
+      jsonrpc: '2.0',
+      method: 'initialize',
+      params: {
+        protocolVersion: '2024-11-05',
+        capabilities: {},
+        clientInfo: {
+          name: 'node-client',
+          version: '1.0.0'
+        }
+      },
+      id: this.nextId()
+    };
+
+    const response = await axios.post(`${this.baseUrl}/mcp`, payload, {
+      headers: this.headers
+    });
+    return response.data;
+  }
+
+  async listTools() {
+    const payload = {
+      jsonrpc: '2.0',
+      method: 'tools/list',
+      params: {},
+      id: this.nextId()
+    };
+
+    const response = await axios.post(`${this.baseUrl}/mcp`, payload, {
+      headers: this.headers
+    });
+    return response.data;
+  }
+
+  async callTool(toolName, args = {}) {
+    const payload = {
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: toolName,
+        arguments: args
+      },
+      id: this.nextId()
+    };
+
+    const response = await axios.post(`${this.baseUrl}/mcp`, payload, {
+      headers: this.headers
+    });
+    return response.data;
+  }
+}
+
+// Usage example
+(async () => {
+  const client = new MCPClient();
+
+  // Initialize session
+  console.log('Initializing session...');
+  const initResult = await client.initialize();
+  console.log('Session initialized:', initResult);
+
+  // List tools
+  console.log('\nListing tools...');
+  const tools = await client.listTools();
+  console.log('Available tools:', tools);
+
+  // Initialize browser
+  console.log('\nInitializing browser...');
+  const browserResult = await client.callTool('browser_init', { headless: false });
+  console.log('Browser initialized:', browserResult);
+
+  // Navigate
+  console.log('\nNavigating to example.com...');
+  const navResult = await client.callTool('navigate', { url: 'https://example.com' });
+  console.log('Navigation result:', navResult);
+
+  // Get content
+  console.log('\nGetting page content...');
+  const content = await client.callTool('get_content', { type: 'text' });
+  console.log('Content:', content);
+})();
+```
+
+### Error Handling
+
+The HTTP server returns standard JSON-RPC error responses:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32000,
+    "message": "Error description"
+  },
+  "id": null
+}
+```
+
+**Common Error Codes:**
+- `-32600`: Invalid Request (malformed JSON-RPC)
+- `-32601`: Method not found
+- `-32602`: Invalid params
+- `-32000`: Server error (includes session errors)
+- `-32001`: Session not found
+
+### Security Considerations
+
+⚠️ **Important Security Notes:**
+
+1. **No Authentication**: The HTTP server does not include authentication by default
+2. **Local Use Only**: Bind to localhost (127.0.0.1) for development
+3. **Production Deployment**: Add authentication middleware before exposing publicly
+4. **HTTPS**: Use a reverse proxy (nginx, Apache) with TLS for production
+5. **Firewall**: Restrict access to trusted IP addresses only
+
+### Production Deployment Example (with nginx)
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # Add authentication
+    auth_basic "Restricted Access";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    location / {
+        proxy_pass http://localhost:7777;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
 ```
 
 ## Available Tools

@@ -1,9 +1,9 @@
-import { getBrowserInstance, getPageInstance } from '../browser-manager.js';
-import { withErrorHandling } from '../system-utils.js';
-import { validateWorkflow, recordExecution, workflowValidator } from '../workflow-validation.js';
-import { selfHealingLocators } from '../self-healing-locators.js';
-import { randomScroll } from '../stealth-actions.js';
-import { ClickArgs, TypeArgs, SolveCaptchaArgs } from '../tool-definitions.js';
+import { getBrowserInstance, getPageInstance } from '../utils/browser-manager.js';
+import { withErrorHandling } from '../utils/system-utils.js';
+import { validateWorkflow, recordExecution, workflowValidator } from '../utils/workflow-validation.js';
+import { selfHealingLocators } from '../utils/self-healing-locators.js';
+import { randomScroll } from '../utils/stealth-actions.js';
+import { ClickArgs, TypeArgs, SolveCaptchaArgs } from '../utils/tool-definitions.js';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 // Click handler

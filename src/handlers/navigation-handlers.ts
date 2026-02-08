@@ -1,7 +1,7 @@
-import { getBrowserInstance, getPageInstance } from '../browser-manager.js';
-import { withErrorHandling, withTimeout } from '../system-utils.js';
-import { validateWorkflow, recordExecution, workflowValidator } from '../workflow-validation.js';
-import { NavigateArgs, WaitArgs } from '../tool-definitions.js';
+import { getBrowserInstance, getPageInstance } from '../utils/browser-manager.js';
+import { withErrorHandling, withTimeout } from '../utils/system-utils.js';
+import { validateWorkflow, recordExecution, workflowValidator } from '../utils/workflow-validation.js';
+import { NavigateArgs, WaitArgs } from '../utils/tool-definitions.js';
 
 // Navigation handler
 export async function handleNavigate(args: NavigateArgs) {

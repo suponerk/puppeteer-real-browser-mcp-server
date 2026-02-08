@@ -1,9 +1,9 @@
-import { getBrowserInstance, getPageInstance, getContentPriorityConfig } from '../browser-manager.js';
-import { withErrorHandling, withTimeout } from '../system-utils.js';
-import { validateWorkflow, recordExecution, workflowValidator } from '../workflow-validation.js';
-import { contentStrategy } from '../content-strategy.js';
-import { tokenManager } from '../token-management.js';
-import { GetContentArgs, FindSelectorArgs } from '../tool-definitions.js';
+import { getBrowserInstance, getPageInstance, getContentPriorityConfig } from '../utils/browser-manager.js';
+import { withErrorHandling, withTimeout } from '../utils/system-utils.js';
+import { validateWorkflow, recordExecution, workflowValidator } from '../utils/workflow-validation.js';
+import { contentStrategy } from '../utils/content-strategy.js';
+import { tokenManager } from '../utils/token-management.js';
+import { GetContentArgs, FindSelectorArgs } from '../utils/tool-definitions.js';
 
 // Get content handler
 export async function handleGetContent(args: GetContentArgs) {
